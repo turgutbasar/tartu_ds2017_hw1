@@ -7,6 +7,13 @@ Created on Nov 5 , 2017
 from argparse import ArgumentParser # Parsing command line arguments
 from sys import path,argv
 from os.path import abspath, sep
+from event_bus import EventBus
+from tcp.server.main import __info, ___VER, server_main
+from tcp.common import DEFAULT_SERVER_INET_ADDR, DEFAULT_SERVER_PORT
+import time
+import logging
+logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-2s) %(message)s')
+LOG = logging.getLogger()
 # Main method -----------------------------------------------------------------
 if __name__ == '__main__':
     # Find the script absolute path, cut the working directory
@@ -16,5 +23,20 @@ if __name__ == '__main__':
     # Parsing arguments
     parser = ArgumentParser(description=__info(),
                             version = ___VER)
+    parser.add_argument('-l','--listenaddr', \
+                        help='Bind server socket to INET address, '\
+                        'defaults to %s' % DEFAULT_SERVER_INET_ADDR, \
+                        default=DEFAULT_SERVER_INET_ADDR)
+    parser.add_argument('-p','--listenport', \
+                        help='Bind server socket to UDP port, '\
+                        'defaults to %d' % DEFAULT_SERVER_PORT, \
+                        default=DEFAULT_SERVER_PORT)
     args = parser.parse_args()
-    print("Initial Server Code")
+    # Eventbus, pass this instance to sudoku
+    bus = EventBus()
+    bus.start()
+    try:
+	server_main(bus, args)
+    except KeyboardInterrupt:
+        bus.terminate()
+	LOG.info('Terminating server ...')
