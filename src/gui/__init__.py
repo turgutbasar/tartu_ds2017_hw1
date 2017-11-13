@@ -1,6 +1,6 @@
 from Tkinter import *
 
-from src.gui.client import get_nickname, get_address
+from client import get_nickname, get_address
 import tkMessageBox
 import Tkinter as tk
 
