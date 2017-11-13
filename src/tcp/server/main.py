@@ -16,6 +16,7 @@ from tcp.common import tcp_receive, tcp_send
 from socket import socket, AF_INET, SOCK_STREAM
 from socket import error as soc_error
 from sys import exit
+from tcp.server import protocol_worker
 # Constants -------------------------------------------------------------------
 ___NAME = 'Sudoku Game Server'
 ___VER = '0.1.0.0'
@@ -63,6 +64,10 @@ def server_main(bus, args):
     # Client List
     client_list = []
 
+    session_list = []
+
+    worker_list = []
+
     # Serve forever
     while 1:
         try:
@@ -72,8 +77,8 @@ def server_main(bus, args):
             client_socket,source = __server_socket.accept()
             LOG.debug('New client connected from %s:%d' % source)
 
-	    client = {client_id: 1, client_socket: client_socket, addr: source}
-	    client_list.add({client_id: 1, client_socket: client_socket, addr: source})
+	    client = {"client_id": 1, "client_socket": client_socket, "addr": source}
+	    client_list.append({client_id: 1, client_socket: client_socket, addr: source})
 
 	    # TODO : Handle coming connection request, create new worker, asign client to worker
             # TODO : Worker need to handle protocol, messaging and events for UI(If we need for server side).
@@ -82,53 +87,11 @@ def server_main(bus, args):
 		LOG.debug(e);
 		return;
 
-            def handle_client(client, close_callback):
-		while True:
-		    m = None
-		    try:
-		        m = tcp_receive(client.client_socket)
-		    except (soc_error) as e:
-		        # In case we failed in the middle of transfer we should report error
-		        LOG.error('Interrupted receiving the data from %s:%d, '\
-			  'error: %s' % (source+(e,)))
-		        # ... and close socket
-		        __disconnect_client(client.client_socket)
-			client.client_socket = None
-		        # ... and proceed to destroy client
-			close_callback(e, client)
-		        break
+            worker = ProtocolWorker(args=(client, close_callback))
 
-		    # Now here we assumen the message contains
-		    LOG.debug('Received message [%d bytes] '\
-		      'from %s:%d' % ((len(m),)+client.source))
-
-		    # We are processing message we have
-		    # TODO : Board gibi bir veri yapisi gerekiyorsa
-		    r = protocol.server_process(m)
-
-		    # Try to send the response (r) to client
-		    # Shutdown the TX pipe of the socket after sending
-		    try:
-		        LOG.debug('Processed request for client %s:%d, '\
-			  'sending response' % client.source)
-		        # Send all data of the response (r)
-		        tcp_send(client.client_socket, r)
-		    except soc_error as e:
-		        # In case we failed in the middle of transfer we should report error
-		        LOG.error('Interrupted sending the data to %s:%d, '\
-			  'error: %s' % (client.source+(e,)))
-		        # ... and close socket
-		        __disconnect_client(client.client_socket)
-			client.client_socket = None
-			close_callback(e, client)
-		        # ... and we should proceed to destroy
-		        break
-            
-	    # SHUT_WR: sending is over - you may stop receiving now
-            # SHUT_RD: receiving is over - stop sending the data
+            worker.run()
             # Starting worker thread to process incoming messages for each client
-
-	    threading.Thread(target=handle_client, args=(client, close_callback)).start()
+	    #threading.Thread(target=handle_client, args=(client, close_callback)).start()
 
         except KeyboardInterrupt as e:
             LOG.info('Terminating socket communication ...')
