@@ -1,5 +1,8 @@
 #!/usr/bin/python
-from tcp.server.protocol import __disconnect_client
+from protocol import __disconnect_client
+
+from protocol_worker import ProtocolWorker
+
 '''
 Sudoku Game Server (TCP)
 Created on Nov 5, 2017
@@ -78,7 +81,7 @@ def server_main(bus, args):
             LOG.debug('New client connected from %s:%d' % source)
 
 	    client = {"client_id": 1, "client_socket": client_socket, "addr": source}
-	    client_list.append({client_id: 1, client_socket: client_socket, addr: source})
+	    client_list.append({"client_id": 1, "client_socket": client_socket, "addr": source})
 
 	    # TODO : Handle coming connection request, create new worker, asign client to worker
             # TODO : Worker need to handle protocol, messaging and events for UI(If we need for server side).

@@ -13,6 +13,7 @@ def get_nickname(nickname):
 def get_address(ip,port):
     
     print 'Application started'
+    global s
     s = socket(AF_INET, SOCK_STREAM)
     print 'TCP Socket created'
     print ip
@@ -23,10 +24,14 @@ def get_address(ip,port):
         s.connect(server_address)
         if s.sendall("connect") == None:
             sessions = s.recv(1024)
-            print sessions
+            return sessions
     except Exception as e:
         s.close()
         print e
+
+def send_session_id(id):
+    return id
+
 
 def multiplayer_game_dialog():
     '''
