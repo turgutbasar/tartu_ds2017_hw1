@@ -55,8 +55,12 @@ def server_process(chunk):
     if chunk.startswith(__REQ_SAMPLE + __MSG_FIELD_SEP):
 	# Split payload
         args = chunk[2:].split(__MSG_FIELD_SEP)
-        # push to event bus
         return __RSP_OK
+    # TODO : Here we need to implement all protocol related message handling.
+    '''elif chunk.startswith(__REQ_SAMPLE + __MSG_FIELD_SEP):
+	# Split payload
+        args = chunk[2:].split(__MSG_FIELD_SEP)
+        return __RSP_OK'''
     else:
         LOG.debug('Unknown control message received: %s ' % chunk)
         return __RSP_UNKNCONTROL

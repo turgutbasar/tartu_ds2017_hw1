@@ -21,9 +21,21 @@ def get_address(ip,port):
     try:
         print "Connecting ..."
         s.connect(server_address)
-        if s.sendall("connect") == None:
-            sessions = s.recv(1024)
-            print sessions
+	s.setblocking(0)
+	buf = ""
+	s.sendall("connect;;")
+    	while True:
+	    m = None
+	    try:
+	        buf += self.__client["client_socket"].recv(512)
+	    except (Exception) as e:
+		endofmsg = buf.find(":")
+		if endofmsg > 0:
+		    m = buf[0:endofmsg]
+		    buf = buf[endofmsg:len(buf)]	    
+		    # Now here we assumen the message contains
+		    LOG.debug('Received message [%d bytes]' % (len(m),))
+		    s.sendall("connect;;")
     except Exception as e:
         s.close()
         print e

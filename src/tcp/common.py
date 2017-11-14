@@ -45,7 +45,7 @@ def tcp_send(sock,data):
     @throws socket.errror in case of transmission error
     '''
     sock.sendall(data)
-    sock.shutdown(SHUT_WR)
+    #sock.shutdown(SHUT_WR)
     return len(data)
 
 def tcp_receive(sock,buffer_size=TCP_RECEIVE_BUFFER_SIZE):
@@ -59,8 +59,7 @@ def tcp_receive(sock,buffer_size=TCP_RECEIVE_BUFFER_SIZE):
     m = ''
     # Receive loop
     while 1:
-        # Receive one block of data according to receive buffer size
-	sock.settimeout(100)        
+        # Receive one block of data according to receive buffer size        
 	block = sock.recv(TCP_RECEIVE_BUFFER_SIZE)
         # If the remote end-point did issue shutdown on the socket
         # using  SHUT_WR flag, the local end point will receive and
