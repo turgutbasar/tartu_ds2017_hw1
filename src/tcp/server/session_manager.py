@@ -35,7 +35,7 @@ class SessionManager():
 	session = {"session_id": session_numerator, "clients": [client], "game": game, "desired_player": 4, "score_board": dict.fromKeys([client_id])}
 	session_numerator += 1
 	self.__sessionlist.append(session)
-	return session
+	return session["session_id"]
     def join_session(client_id, session_id):
 	session = self.__sessionlist[session_id]
 	client = self.__clientlist[client_id]
