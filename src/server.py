@@ -7,7 +7,6 @@ Created on Nov 5 , 2017
 from argparse import ArgumentParser # Parsing command line arguments
 from sys import path,argv
 from os.path import abspath, sep
-from event_bus import EventBus
 from tcp.server.main import __info, ___VER, server_main
 from tcp.common import DEFAULT_SERVER_INET_ADDR, DEFAULT_SERVER_PORT
 import time
@@ -32,11 +31,7 @@ if __name__ == '__main__':
                         'defaults to %d' % DEFAULT_SERVER_PORT, \
                         default=DEFAULT_SERVER_PORT)
     args = parser.parse_args()
-    # Eventbus, pass this instance to sudoku
-    bus = EventBus()
-    bus.start()
     try:
-	server_main(bus, args)
+	server_main(args)
     except KeyboardInterrupt:
-        bus.terminate()
 	LOG.info('Terminating server ...')

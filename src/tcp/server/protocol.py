@@ -40,7 +40,7 @@ def __disconnect_client(sock):
     sock.close()
     LOG.info('Disconnected client')
 
-def server_process(event_bus, chunk):
+def server_process(chunk):
     '''Process the client's messages and generates needed events 
         @param event_bus: Event bus that has all event messages about server
         @param message: string, protocol data unit received from client

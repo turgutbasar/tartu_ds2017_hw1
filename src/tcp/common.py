@@ -60,7 +60,8 @@ def tcp_receive(sock,buffer_size=TCP_RECEIVE_BUFFER_SIZE):
     # Receive loop
     while 1:
         # Receive one block of data according to receive buffer size
-        block = sock.recv(TCP_RECEIVE_BUFFER_SIZE)
+	sock.settimeout(100)        
+	block = sock.recv(TCP_RECEIVE_BUFFER_SIZE)
         # If the remote end-point did issue shutdown on the socket
         # using  SHUT_WR flag, the local end point will receive and
         # empty string in all attempts of recv method. Therefore we
