@@ -1,6 +1,27 @@
 # Imports----------------------------------------------------------------------
 # Main method -----------------------------------------------------------------
 import sys
+TCP_RECEIVE_BUFFER_SIZE = 1024*1024
+#
+# protocol constants ----------------------------------------------------------
+# Field separator for sending multiple values ---------------------------------
+__MSG_FIELD_SEP = ':'
+# Requests --------------------------------------------------------------------
+__REQ_SAMPLE = '1'
+__CTR_MSGS = { __REQ_SAMPLE:'Sample',
+              }
+# Responses--------------------------------------------------------------------
+__RSP_OK = '0'
+__RSP_BADFORMAT = '1'
+__RSP_UNKNCONTROL = '3'
+__RSP_ERRTRANSM = '4'
+__RSP_CANT_CONNECT = '5'
+__ERR_MSGS = { __RSP_OK:'No Error',
+               __RSP_BADFORMAT:'Malformed message',
+               __RSP_UNKNCONTROL:'Unknown control code',
+               __RSP_ERRTRANSM:'Transmission Error',
+               __RSP_CANT_CONNECT:'Can\'t connect to server'
+              }
 
 from socket import AF_INET, SOCK_STREAM, socket
 
@@ -22,9 +43,12 @@ def get_address(ip,port):
     try:
         print "Connecting ..."
         s.connect(server_address)
-        if s.sendall("connect") == None:
+        message = __MSG_FIELD_SEP.join([__REQ_SAMPLE] + map(str, ["A"])) + ";;"
+        print message
+        s.setblocking(0)
+        if s.sendall(message) == None:
             sessions = s.recv(1024)
-            return sessions
+            print sessions
     except Exception as e:
         s.close()
         print e

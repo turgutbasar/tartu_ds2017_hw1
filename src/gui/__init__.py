@@ -111,9 +111,9 @@ def create_session():
 def game_player():
     print "game"
 
-#create_login_screen()
+create_login_screen()
 
-multiplayer_game(9)
+#multiplayer_game(9)
 
 #create_session()
 
