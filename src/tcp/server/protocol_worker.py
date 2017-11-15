@@ -13,6 +13,7 @@ from socket import error as soc_error
 from tcp.server import protocol
 from tcp.common import tcp_receive, tcp_send
 from socket import socket, AF_INET, SOCK_STREAM
+from tcp.server.session_manager import SessionManager
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
 LOG = logging.getLogger()
@@ -24,6 +25,8 @@ class ProtocolWorker(threading.Thread):
         self.__callback = callback
         self.__session_list = session_list
         self.__client = client
+	self.__session_manager = SessionManager()
+
         threading.Thread.__init__(self)
 
     def terminate(self):
@@ -47,7 +50,7 @@ class ProtocolWorker(threading.Thread):
                     LOG.debug('Received message [%d bytes]' % (len(m),))
                     # We are processing message we have
                     # TODO : Session Manager Needed
-                    r = protocol.server_process(m)
+                    r = protocol.server_process(m, self.__session_manager, self.__client["client_socket"], self.__client["addr"])
 
                     # Try to send the response (r) to client
                     # Shutdown the TX pipe of the socket after sending
