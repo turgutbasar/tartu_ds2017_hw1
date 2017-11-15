@@ -8,11 +8,11 @@ Mansur Alizada
 Install Tkinter
 apt-get install python-tk
 
-Run Server
+Run Server(src)
 
-python server.py -p[Port]
+python server.py -p[Port] -l[Adress]
  
-Run Client
+Run Client(src/gui)
 
-python init.py 
+python __init__.py 
 
