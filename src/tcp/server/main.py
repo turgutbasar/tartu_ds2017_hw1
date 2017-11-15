@@ -1,4 +1,5 @@
 #!/usr/bin/python
+
 from tcp.server.protocol import __disconnect_client
 from tcp.server.protocol_worker import ProtocolWorker
 '''
@@ -76,19 +77,19 @@ def server_main(args):
             client_socket,source = __server_socket.accept()
             LOG.debug('New client connected from %s:%d' % source)
 		
-	    client_numerator += 1
-	    client = {"client_id": client_numerator, "client_socket": client_socket, "addr": source}
-	    client_list.append(client)
+            client_numerator += 1
+            client = {"client_id": client_numerator, "client_socket": client_socket, "addr": source}
+            client_list.append(client)
 
-	    # Handles incoming connection requests, creates new worker, asigns client to worker
+            # Handles incoming connection requests, creates new worker, asigns client to worker
             # Worker need to handle protocol, messaging.
             def close_callback(e, c):
-		LOG.debug(e);
-		return;
+                LOG.debug(e);
+                return;
 
             worker = ProtocolWorker(client, session_list, close_callback)
 
-	    worker_list.append(worker)
+            worker_list.append(worker)
 
             worker.run()
 

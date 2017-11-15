@@ -1,6 +1,35 @@
 # Imports----------------------------------------------------------------------
 # Main method -----------------------------------------------------------------
 import sys
+import threading
+from socket import error as soc_error
+
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
+LOG = logging.getLogger()
+
+TCP_RECEIVE_BUFFER_SIZE = 1024*1024
+#
+# protocol constants ----------------------------------------------------------
+# Field separator for sending multiple values ---------------------------------
+__MSG_FIELD_SEP = ':'
+# Requests --------------------------------------------------------------------
+__REQ_SAMPLE = '1'
+__CTR_MSGS = { __REQ_SAMPLE:'Sample',
+              }
+# Responses--------------------------------------------------------------------
+__RSP_OK = '0'
+__RSP_BADFORMAT = '1'
+__RSP_UNKNCONTROL = '3'
+__RSP_ERRTRANSM = '4'
+__RSP_CANT_CONNECT = '5'
+__ERR_MSGS = { __RSP_OK:'No Error',
+               __RSP_BADFORMAT:'Malformed message',
+               __RSP_UNKNCONTROL:'Unknown control code',
+               __RSP_ERRTRANSM:'Transmission Error',
+               __RSP_CANT_CONNECT:'Can\'t connect to server'
+              }
 
 from socket import AF_INET, SOCK_STREAM, socket
 
@@ -13,6 +42,7 @@ def get_nickname(nickname):
 def get_address(ip,port):
     
     print 'Application started'
+    global s
     s = socket(AF_INET, SOCK_STREAM)
     print 'TCP Socket created'
     print ip
@@ -21,26 +51,44 @@ def get_address(ip,port):
     try:
         print "Connecting ..."
         s.connect(server_address)
-	s.setblocking(0)
-	buf = ""
-	s.sendall("connect;;")
-    	while True:
-	    m = None
-	    try:
-	        buf += self.__client["client_socket"].recv(512)
-	    except (Exception) as e:
-		endofmsg = buf.find(":")
-		if endofmsg > 0:
-		    m = buf[0:endofmsg]
-		    buf = buf[endofmsg:len(buf)]	    
-		    # Now here we assumen the message contains
-		    LOG.debug('Received message [%d bytes]' % (len(m),))
-		    s.sendall("connect;;")
+	t = threading.Thread(target=tcp_receive_thread, args=())
+	t.start()
+        message = __MSG_FIELD_SEP.join([__REQ_SAMPLE] + map(str, ["A"])) + ";;"
+        print message
+        s.setblocking(0)
+        s.sendall(message)
     except Exception as e:
         s.close()
         print e
 
-def multiplayer_game_dialog():
+def tcp_receive_thread():
+    buf = ""
+    s.settimeout(1)
+    while True:
+	try:
+	    buf += s.recv(1024)
+	except soc_error as e:
+	    endofmsg = buf.find(";;")
+            if endofmsg > 0:
+            	m = buf[0:endofmsg]
+                buf = buf[endofmsg:len(buf)]
+                # Now here we assumen the message contains
+                LOG.debug('Received message [%d bytes]' % (len(m),))
+                # TODO : Process messages
+
+def send_session_id(id):
+    return id
+
+
+def create_game_session(players_num):
+    try:
+        print players_num
+        if s.sendall(players_num) == None:
+            session_id = s.recv(1024)
+            return session_id
+    except Exception as e:
+        s.close()
+        print e
     '''
     show session list
     print get_address(ip,port)'''

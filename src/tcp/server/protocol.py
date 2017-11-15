@@ -94,7 +94,6 @@ def server_process(chunk, session_manager, socket, addr):
         
         #broadcasting
         return __RSP_OK
-    
     elif chunk.startwith(__REQ_CLIENT_LEFT + __MSG_FIELD_SEP):
         args = chunk[2:].split(__MSG_FIELD_SEP)
         status = session_manger.client_left_server(args[0],client_id)
@@ -102,7 +101,6 @@ def server_process(chunk, session_manager, socket, addr):
             #TODO: Finishing game
             #TODO: broadcasting
         return __RSP_OK
-    
     else:
         LOG.debug('Unknown control message received: %s ' % chunk)
         return __RSP_UNKNCONTROL

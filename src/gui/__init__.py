@@ -1,6 +1,6 @@
 from Tkinter import *
 
-from client import get_nickname, get_address
+from client import get_nickname, get_address, send_session_id, create_game_session
 import tkMessageBox
 import Tkinter as tk
 
@@ -21,11 +21,15 @@ def info_message(message):
     tkMessageBox.showinfo("Title", message)
 
 def on_select(event):
-    print event.widget.curselection()[0]
+    #print event.widget.curselection()[0]
+    print list_name.get(list_name.curselection())
+    connect_to_server()
 
+# show nickname screen
 def create_login_screen():
     read_names = open("nicknames", "r")
     names = read_names.read().split()
+
     global login
     login = Tk()
     login.title("Enter Nickname")
@@ -42,43 +46,53 @@ def create_login_screen():
     nick_label = Label(login, text="Your Nickname")
     nick_label.pack()
     global nick_text
-    nick_text = Text(login, width=50, height=2)
+    nick_text = Text(login, width=50, height=5)
     nick_text.pack()
     mainloop()
-
+# connect to server screen
 def connect_to_server():
     login.destroy()
+    global root
     root = Tk()
     root.title("Enter Sudoku server address")
     okay = Button(root, text="ok", command=get_address_port, width=20)
     okay.pack({"side": "bottom"})
-    address_label = Label(root, text="server address")
+    address_label = Label(root, text="server address",font=("Arial", 10))
     address_label.pack()
     global address_text
-    address_text = Text(root, width=50, height=2)
+    address_text = Text(root, width=50, height=2, font=("Arial", 10))
     address_text.pack()
-    port_label = Label(root, text="port")
+    port_label = Label(root, text="port",font=("Arial", 10))
     port_label.pack()
     global port_text
-    port_text = Text(root, width=50, height=2)
+    port_text = Text(root, width=50, height=2,font=("Arial", 10))
     port_text.pack()
     mainloop()
 
 def get_address_port():
     address_server = address_text.get("1.0",'end-1c')
     port = port_text.get("1.0",'end-1c')
-    get_address(address_server,port)
+    response = get_address(address_server,port)
+    multiplayer_game(response)
 
-def multiplayer_game():
+def on_click_sessions(event):
+    current_session = list_box_sessions.get(list_box_sessions.curselection())
+    print current_session
+    return send_session_id(current_session)
+
+def multiplayer_game(list_sessions):
+    root.destroy()
     game = Tk()
     game.title("Multiplayer Game Dialog ")
-    list_sessions = Listbox(game,height = 5)
+    global list_box_sessions
+    list_box_sessions = Listbox(game,height = 5,font=("Arial", 10),selectmode='single')
+    list_box_sessions.bind('<<ListboxSelect>>', on_click_sessions)
     i = 0
-    sessions = ["fghj","efdsf","fsd"]
-    for n in sessions:
-        list_sessions.insert(i, n)
+    list_sessions = ["fghj","efdsf","fsd"]
+    for n in list_sessions:
+        list_box_sessions.insert(i, n)
         i += 1
-    list_sessions.pack()
+    list_box_sessions.pack()
     okay = Button(game, text="create new session", command = create_session, width=20)
     okay.pack({"side": "bottom"})
     mainloop()
@@ -87,8 +101,9 @@ def create_session():
     global session
     session = Tk()
     session.title("Creating new Sudoku Solving Session")
-    okay = Button(session, text="ok", command=game_player, width=20)
+    okay = Button(session, text="ok", command = create_session, width=20)
     okay.pack({"side": "bottom"})
+
     num_label = Label(session, text="Player's number:")
     num_label.pack()
     global player_num_text
@@ -96,12 +111,16 @@ def create_session():
     player_num_text.pack()
     mainloop()
 
-def game_player():
+def create_new_session():
+    player_num = player_num_text.get("1.0", 'end-1c')
+    create_game_session(player_num)
     print "game"
 
+def game_player_scenario():
+    print "senario"
 create_login_screen()
 
-#multiplayer_game()
+#multiplayer_game(9)
 
 #create_session()
 
