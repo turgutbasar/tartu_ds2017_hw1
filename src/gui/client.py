@@ -57,7 +57,15 @@ def send_session_id(id):
     return id
 
 
-def multiplayer_game_dialog():
+def create_game_session(players_num):
+    try:
+        print players_num
+        if s.sendall(players_num) == None:
+            session_id = s.recv(1024)
+            return session_id
+    except Exception as e:
+        s.close()
+        print e
     '''
     show session list
     print get_address(ip,port)'''
