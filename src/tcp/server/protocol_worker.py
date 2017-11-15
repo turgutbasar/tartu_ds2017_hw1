@@ -55,7 +55,7 @@ class ProtocolWorker(threading.Thread):
                         LOG.debug('Processed request for client %s:%d, ' \
                                   'sending response' % self.__client["addr"])
                         # Send all data of the response (r)
-                        tcp_send(self.__client["client_socket"], r)
+                        tcp_send(self.__client["client_socket"], r + ";;")
                     except soc_error as e:
                         # In case we failed in the middle of transfer we should report error
                         LOG.error('Interrupted sending the data to %s:%d, ' \
