@@ -3,7 +3,7 @@ import platform
 import tkFileDialog as filedialog
 from Tkinter import *
 
-from src.gui.oosudoku import *
+from oosudoku import *
 
 if platform.system() == 'Windows':
     small_font = ("Courier New", "10", "bold")
