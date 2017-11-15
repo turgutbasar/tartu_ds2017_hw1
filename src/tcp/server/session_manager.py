@@ -73,4 +73,5 @@ class SessionManager():
 	# TODO : check every session to clean user and return ended games
     def get_client_id(addr):
 	# TODO . match client address with client_id and return client id
-     
+    def get_session_list():
+	# TODO : serialize session list to JSON

@@ -1,6 +1,14 @@
 # Imports----------------------------------------------------------------------
 # Main method -----------------------------------------------------------------
 import sys
+import threading
+from socket import error as soc_error
+
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s')
+LOG = logging.getLogger()
+
 TCP_RECEIVE_BUFFER_SIZE = 1024*1024
 #
 # protocol constants ----------------------------------------------------------
@@ -43,15 +51,30 @@ def get_address(ip,port):
     try:
         print "Connecting ..."
         s.connect(server_address)
+	t = threading.Thread(target=tcp_receive_thread, args=())
+	t.start()
         message = __MSG_FIELD_SEP.join([__REQ_SAMPLE] + map(str, ["A"])) + ";;"
         print message
         s.setblocking(0)
-        if s.sendall(message) == None:
-            sessions = s.recv(1024)
-            print sessions
+        s.sendall(message)
     except Exception as e:
         s.close()
         print e
+
+def tcp_receive_thread():
+    buf = ""
+    s.settimeout(1)
+    while True:
+	try:
+	    buf += s.recv(1024)
+	except soc_error as e:
+	    endofmsg = buf.find(";;")
+            if endofmsg > 0:
+            	m = buf[0:endofmsg]
+                buf = buf[endofmsg:len(buf)]
+                # Now here we assumen the message contains
+                LOG.debug('Received message [%d bytes]' % (len(m),))
+                # TODO : Process messages
 
 def send_session_id(id):
     return id
