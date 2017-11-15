@@ -1,17 +1,16 @@
 ﻿import Tkinter
 from Tkinter import *
 import tkFileDialog as filedialog
-from oosudoku import *
-
+from sudoku.oosudoku import *
 
 import platform
+
 if platform.system() == 'Windows':
     small_font = ("Courier New", "10", "bold")
     large_font = ("Courier New", "21", "bold")
 else:
     small_font = ("Courier New", "10", "bold")
     large_font = ("Courier New", "25", "bold") 
-
 
 box_size = 50
 half = box_size/2
@@ -32,7 +31,6 @@ class NumberButtons(Frame):
             bi.pack(ipadx = 4,pady = 6)
             self.buttons.append(bi)
         self.current.set(1)
-
 
     def get_current(self):
         """ Return the current choice """
@@ -296,8 +294,3 @@ class SudokuApp():
         master.resizable(0,0)
         self.controller = Controller(master)
 
-
-
-root = Tk()
-app = SudokuApp(root)
-root.mainloop()

@@ -6,8 +6,9 @@ Created on Nov 5, 2017
 '''
 # Setup Python logging --------------------------------------------------------
 import logging
+
 FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
-logging.basicConfig(level=logging.DEBUG,format=FORMAT)
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 LOG = logging.getLogger()
 # Imports----------------------------------------------------------------------
 from exceptions import ValueError # for handling number format exceptions
@@ -15,12 +16,15 @@ from tcp.common import __RSP_BADFORMAT,\
      __RSP_OK, __MSG_FIELD_SEP, __RSP_UNKNCONTROL, __REQ_REGISTRATION, __REQ_NEW_SESSION, __REQ_JOIN_EXISTING, __REQ_BOARD_CHANGE, __REQ_CLIENT_LEFT, __RSP_SESSION_LIST, __RSP_BOARD, __RSP_SESSION_IS_FULL, __RSP_ENDGAME, __RSP_BOARDUPDATE
     #TODO: add reqs
 from socket import error as soc_err
+
 # Constants -------------------------------------------------------------------
 ___NAME = 'Sudoku Game Server-Side Protocol'
 ___VER = '0.1.0.0'
 ___DESC = 'Sudoku Game Server-Side Protocol (TCP version)'
 ___BUILT = '2017-11-5'
 ___VENDOR = 'Copyright (c) 2017 DSLab'
+
+
 # Static functions ------------------------------------------------------------
 def __disconnect_client(sock):
     '''Disconnect the client, close the corresponding TCP socket
@@ -41,6 +45,7 @@ def __disconnect_client(sock):
     sock.close()
     LOG.info('Disconnected client')
 
+
 def server_process(chunk, session_manager, socket, addr):
     '''Process the client's messages and generates needed events 
         @param event_bus: Event bus that has all event messages about server
@@ -54,32 +59,26 @@ def server_process(chunk, session_manager, socket, addr):
         return __RSP_BADFORMAT
     LOG.debug('Request control code (%s)' % chunk[0])
     
-    client_id = get_client_id(addr) 
-    
-    #registaration request
+    client_id = session_manager.get_client_id(addr)
+
     if chunk.startswith(__REQ_REGISTRATION + __MSG_FIELD_SEP):
         # Split payload
         args = chunk[2:].split(__MSG_FIELD_SEP)
-        #adding username to the list
-        session_manager.new_user(args[0], socket, addr)
-        #getting session_list
-        session_list = session_manager.get_session()
-        #formatting
-        rsp = __MSG_FIELD_SEP.join([__RSP_SESSION_LIST] + map(str, [session_list])) + ";;"
-        #return session_list
+        # adding username to the list
+        session_manager.new_player(args[0], socket, addr)
+        # getting session_list
+        rsp = session_manager.get_session_list()
+        # return session_list
         return rsp
-    
-    #creat new session request
+
     elif chunk.startwith(__REQ_NEW_SESSION + __MSG_FIELD_SEP):
         args = chunk[2:].split(__MSG_FIELD_SEP)
         session_id = session_manager.new_session(client_id)
         return session_id
-    
     #join session request
     elif chunk.startwith(__REQ_JOIN_EXISTING + __MSG_FIELD_SEP):
-        #TODO: Game starting broadcasting
+        # TODO: Game starting broadcasting
         args = chunk[2:].split(__MSG_FIELD_SEP)
-        
         join = session_manager.join_session(client_id, args[0])
         #Join session if there is free place
         if(join == True):
@@ -98,8 +97,9 @@ def server_process(chunk, session_manager, socket, addr):
     
     #add digit to game board request
     elif chunk.startwith(__REQ_BOARD_CHANGE + __MSG_FIELD_SEP):
-        #TODO: Game scores broadcasting, or anonse winner broadcasting
+        # TODO: Game scores broadcasting, or anonse winner broadcasting
         args = chunk[2:].split(__MSG_FIELD_SEP)
+
         move = {'i': int(args[1]), 'j':int(args[2]), 'value':int(args[3])}
         status = session_manager.process_game_move(args[0], client_id, move)
         clients = game_status[0]
@@ -113,6 +113,7 @@ def server_process(chunk, session_manager, socket, addr):
             for c in clients:
                 message = __MSG_FIELD_SEP.join([__RSP_BOARDUPDATE] + map(str, [string])) + ";;"
                 c.sendall(message)
+
         return __RSP_OK
     
     #client left game request
@@ -130,6 +131,7 @@ def server_process(chunk, session_manager, socket, addr):
             for c in clients:
                 message = __MSG_FIELD_SEP.join([__RSP_BOARDUPDATE] + map(str, [string])) + ";;"
                 c.sendall(message)
+
         return __RSP_OK
     else:
         LOG.debug('Unknown control message received: %s ' % chunk)
