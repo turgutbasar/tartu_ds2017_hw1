@@ -89,6 +89,7 @@ def get_address_port():
 
 
 def notify_callback( type, data):
+    print("data:" + str(type))
     if type == 0:
         multiplayer_game(data)
     else:
@@ -118,6 +119,7 @@ def multiplayer_game(list_sessions):
     mainloop()
 
 def create_session():
+    print("create sesson")
     game.destroy()
     global session
     session = Tk()

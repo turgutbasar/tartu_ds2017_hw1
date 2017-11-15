@@ -110,7 +110,7 @@ def tcp_receive_thread(notify_callback):
                     print("data",data)
                     d = json.loads(data)
                     print (d["session"])
-                    callback(1, data)
+                    callback(1, d["session"])
                 else:
                     LOG.debug('Unknown control message received: %s ' % m)
 
