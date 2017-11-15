@@ -1,239 +1,232 @@
-import Tkinter
-import platform
-import tkFileDialog as filedialog
-from Tkinter import *
+def list_diff(lst1, lst2):
+    """Return lst1 - lst2.
 
-from src.gui.oosudoku import *
+    list_diff(list<X>, list<X>) -> list<X>
+    The result is the list of entries in lst1 that are not in lst2.
 
-if platform.system() == 'Windows':
-    small_font = ("Courier New", "10", "bold")
-    large_font = ("Courier New", "21", "bold")
-else:
-    small_font = ("Courier New", "10", "bold")
-    large_font = ("Courier New", "25", "bold") 
-
-
-box_size = 50
-half = box_size/2
-
-class NumberButtons(Frame):
-    """ A frame containing the 9 choice buttons """
-
-    def __init__(self, parent):
-        Frame.__init__(self, parent, relief=SUNKEN, bg = "grey")
-        self.buttons = []
-        self.current = IntVar()
-        for i in range(1,10):
-            bi = Radiobutton(self, text = str(i), value = i, 
-                             variable = self.current,
-                             indicatoron=0,
-                             font = large_font, fg = "red",
-                             selectcolor="yellow")
-            bi.pack(ipadx = 4,pady = 6)
-            self.buttons.append(bi)
-        self.current.set(1)
-
-
-    def get_current(self):
-        """ Return the current choice """
-
-        return self.current.get()
-
-
-                    ############################
-                    #===== COMMANDS CLASS =====#
-                    ############################
-
-class Commands(Frame):
-    """ Create :
-        3 Buttons which interact with the canvas
-        Button 1 : Show or Hide the available choices for the game
-        Button 2 : Auto fill or not the game
-        Button 3 : Undo the latest action
     """
-    def __init__(self, parent, canvas):
-        Frame.__init__(self, parent, bg = "grey")
+    diff = []
+    for e in lst1:
+        if not e in lst2:
+            diff.append(e)
+    return diff
 
-        self.canvas = canvas
-        self.sudoku = None
+def list_intersection(lst1, lst2):
+    """Return the intersection.
 
-    #=== Three Buttons ====#
+    list_intersection(list<X>, list<X>) -> list<X>
+    The result is the list of all entries in both lst1 and lst2.
 
-
-    #=== Create Buttons Events ====#
-
-
-    def SetSudoku(self, sudoku):
-        self.sudoku = sudoku
-
-
-                    ########################
-                    #===== VIEW CLASS =====#
-                    ########################
-
-class View(Frame):
-    """ Create:
-        1 canvas with 9x9 Texts (i.e. sudoku case) + Ligns
-        1 Table which contains ids of all Text items logically related to the table sudoku.game[][]
-        1 Label wich displays the state of the game
     """
-    def __init__(self, parent):
-        Frame.__init__(self, parent, bg = "grey")
+    inter = []
+    for e in lst1:
+        if e in lst2:
+            inter.append(e)
+    return inter
 
-        self.sudoku = None
-        self.numberbuttons = None
-        self.commands = None
+def row2list(str):
+    """Convert a row string into a list
 
-        #=== Canvas ===#
+    row2list(string) -> list<char>
+    Precondition: str is a string representation of a row i.e. every
+    second char is an entry of the row and there are 9 entries
 
-        # Initialize the Canvas
-        self.CanvasSize = 500 
-        self.CanvasGame = Canvas(self, width = self.CanvasSize-2, height = self.CanvasSize-2, bg = "white", relief = "solid", bd = 4)
-        self.CanvasGame.pack(padx = 20, pady = 20)
-        self.table = []
+    """
+    row = []
+    for i in range(0, 18, 2):
+        row.append(str[i])
+    return row
 
-        # Create Canvas Items (Ligns + 9x9 Texts)  + 1 Label
-        for i in range(1,10):
-            if (i == 3) or (i == 6): width = 4
-            else: width = 1
-            self.CanvasGame.create_line(4+i*self.CanvasSize/9, 0, 4+i*self.CanvasSize/9, self.CanvasSize+10, width = width, state="disabled")
-            self.CanvasGame.create_line(0, 4+i*self.CanvasSize/9, self.CanvasSize+10, 4+i*self.CanvasSize/9, width = width, state="disabled")
-            itemsid = []
-            for j in range(1,10):
-                itemsid.append(self.CanvasGame.create_text(4+(2*i-1)*self.CanvasSize/18, 4+(2*j-1)*self.CanvasSize/18, anchor = CENTER, tag='Text', text = " ", font = large_font, fill="red"))
-            self.table.append(itemsid)
 
-        self.labelVariable = StringVar()
-        self.labelVariable.set("")
-        self.label = Label(self, textvariable=self.labelVariable, font = large_font, bg="grey", fg="red")
-        self.label.pack(pady = 10)
+class Sudoku:
+    """A Sudoku game"""
 
-        #==== Create Mouse Event ===#
-        """If the Player click on a empty "case" (i.e. item with a tag 'Text') and the number he tries to insert is consistent with the
-        available choices, he will success. Otherwise nothing happens. After each success, the display is updated"""
-
-        self.CanvasGame.bind("<Button-1>", self.Write) # If the player left-click on the canvas => execute the method Write
-
-    def Write(self, event):
-        if self.sudoku != None: # To be sure that the user cannot interact with the canvas when no game is loaded
-            items = self.CanvasGame.find_enclosed(event.x - 35,event.y -35 , event.x +35,event.y +35) # We consider all items enclosed in a square 70x70 where the user clicked (the size of the square depends strongly on the canvas.size) 
-            item = list_intersection(items, self.CanvasGame.find_withtag('Text')) # We just consider previous selected items which are empty "case"(i.e. item with a tag 'Text')
-            if len(item) == 1:
-                for i in range(0,9):
-                    for j in range(0,9):
-                        if int(item[0]) == int(self.table[j][i]):
-                            if str(self.numberbuttons.get_current()) in self.sudoku.choices(i,j): # We check what the user tries to insert is consistent with the available choices
-                                self.sudoku.set_entry(i,j,str(self.numberbuttons.get_current()))  # We Update game[][]
-                                for t in self.sudoku._undo_stack[-1]:
-                                    self.CanvasGame.itemconfig(self.table[t[1]][t[0]], tag='Fixed')
-                                self.Update() # We update the display
-       
-        #==== Update Items ===#
-
-    def Update(self):
-        # Update the Label
-        self.labelVariable.set(self.sudoku.game_status())
-        # Update the Fixed Numbers --> All items which are "Fixed" tagged are displayed in red
-        for i in range(0,9):
-            for j in range(0,9):
-                if " " not in self.sudoku._game[i][j]:
-                    self.CanvasGame.itemconfig(self.table[j][i], text=self.sudoku._game[i][j], font = large_font, tag='Fixed', fill="red")
-        # Update the choices Numbers --> All items which are "Text" tagged are displayed in blue or not (depending on the Show/Hide choices Button)
+    # all the valid choices
+    all_choices = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 
 
-        #==== GET/SET Methods ===#
+    def _read_game(self, filename):
+        """Return a list representation of the game.
+
+        _read_game(string) -> void
+        Precondition: The file can be opened for reading and contains 9
+        lines with each line representing a row of the game.
+
+        """
+        f = open('game.txt', 'r')
+        for line in f:
+            self._game.append(row2list(line))
+        f.close()
+
+
+    def __init__(self, filename, autofill = False):
+        """Constructor: Sudoku(filename, autofill) loads the game from 
+        the given file and sets the autofill flag.
+
+        Precondition: Assumes filename is a valid Sudoku game file.
+
+        """
+        self._game = []
+        self._read_game(filename)
+        self._undo_stack = []  # keeps move info for later undos
+        self._do_auto_fill = autofill  # determine if auto fill should be used
+
+
+    def write_game(self, filename):
+        f = open(filename, 'w')
+        for row in self._game:
+            f.write(' '.join(row) + '\n')
+        f.close()
+
+    def get_row(self, r):
+        """Get the r'th row of game
+
+        get_row(integer) -> list<char>
+        Precondition: 0 <= r <= 8.
+
+        """
+        return self._game[r]
+
+    def get_column(self, c):
+        """Get the c'th column of game
+
+        get_column(integer) -> list<char>
+        Precondition: 0 <= c <= 8.
+
+        """
+        column = []
+        for r in self._game:
+            column.append(r[c])   
+        return column
+
+    def get_block(self, r, c):
+        """Get the (r,c) block of game.
+
+        get_block(integer, integer) -> list<char>
+        Precondition: 0 <= r < 3 and 0 <= c < 3.
+
+        """
+        block = []
+        for row in range(3*int(r), 3*int(r)+3):
+            block.extend(self._game[row][3*int(c):3*int(c)+3])
+        return block
+
+
+
+    def get_entry(self, r, c):
+        """Get the entry at row r and column c
+
+        get_entry(int, int) -> char
+        """
+
+        return self._game[r][c]
+
+    def set_entry(self, r, c, v):
+        """Set the entry at row r and column c to v
+
+        set_entry(int, int, char) -> void
+        """
+
+        self._game[r][c] = v
+        entries = [(r,c)]
+        if self._do_auto_fill:
+            auto = self.auto_fill()
+            entries.extend(auto)
+        self._undo_stack.append(entries)
+
+    def undo(self):
+        """Undo the last move."""
+        if self._undo_stack != []:
+            entries = self._undo_stack.pop()
+            for r,c in entries:
+                self._game[r][c] = ' '
         
-    def SetNumberButtons(self, numberbuttons):
-        self.numberbuttons = numberbuttons
-    def SetSudoku(self, sudoku):
-        self.sudoku = sudoku
-    def SetCommands(self, commands):
-        self.commands = commands
+    ### Below is the "pythonic" way of accessing the game info instead of the
+    ### above 2 methods. By defining the special class methods __setitem__
+    ### and __getitem__ you can access and update info from a Sudoku object x
+    ### as follows
+    ### x[r,c]        - the same as x.get_entry(r,c)
+    ### x[r,c] = v    - the same as x.set_entry(r,c,v)
+
+    def __getitem__(self, key):
+        r,c = key
+        return self._game[r][c]
+
+    def __setitem__(self, key, val):
+        r,c = key
+        self.set_entry(r,c,val)
+   
+    def choices(self, r, c):
+        """Return the choices for position (r,c)
+
+        choices(integer, integer) -> list<char>
+        Precondition: 0 <= r <= 8 and 0 <= c <= 8
+        and _game[r][c] == ' '
+
+        This function returns all the possible choices that are possible 
+        at (r,c) in game - i.e. each choice should not occur in row r, 
+        column c or in the block containing this position.
+
+        """
+        block_row = r / 3
+        block_col = c / 3
+        row_choices = list_diff(Sudoku.all_choices, self.get_row(r))
+        col_choices = list_diff(Sudoku.all_choices, self.get_column(c))
+        block_choices = list_diff(Sudoku.all_choices, 
+                                  self.get_block(block_row, block_col))
+        choices = list_intersection(row_choices, col_choices)
+        choices = list_intersection(choices, block_choices)
+        return choices
 
 
-                    ##############################
-                    #===== CONTROLLER CLASS =====#
-                    ##############################
+    def game_status(self):
+
+        status = "Finished"
+
+        game = self._game
+        for row in range(9):
+            for col in range(9):
+               if game[row][col] == ' ':
+                   status = ""
+                   ch = self.choices(row, col)
+                   scores = 0
+                   if not ch:
+                       k=scores-1
+                       print k
+                       return "Unsolvable"
+
+        return status
+
+    def flip_af(self):
+        """ Flip between doing and not doing auto fill """
+
+        self._do_auto_fill = not self._do_auto_fill
+        return self._do_auto_fill
 
 
-
-class Controller(Frame):
-    """ Create:
-        2 Frames : one contains a view instance(canvas + lable), the other contains a numberbuttons instance and a commands instance
-        1 menu "File" which give the possibility:
-            * to open a file and load a game
-            * Exit the game
-    """
-    def __init__(self, parent):
-        Frame.__init__(self, parent, bg = "grey")
-        self.parent = parent
-        self.F1 = Frame(parent, bd=5, bg = "grey", relief="sunken")
-        self.F2 = Frame(parent, bg="grey")
-        self.view = View(self.F1)
-        self.numberbuttons = NumberButtons(self.F2)
-        self.view.SetNumberButtons(self.numberbuttons)
-        self.commands = Commands(self.F2, self.view)
-
-        #MenuBar
-        self.menubar = Menu(self)
-        self.filemenu = Menu(self.menubar, tearoff=0)
-        self.filemenu.add_command(label="Begin Game", command=self.LoadGame)
-        self.filemenu.add_command(label="Exit", command=self.QuitGame)
-        self.menubar.add_cascade(label="Begin or Exit", menu=self.filemenu)
-        parent.config(menu=self.menubar)
-
-        #Display
-        self.F1.pack(fill = Y, side=LEFT)
-        self.F2.pack(fill = Y, side=LEFT)
-        self.view.pack(side = LEFT, padx = 30)
-        self.numberbuttons.pack(side = LEFT, padx = 20)
-        self.commands.pack(side = LEFT)
-
-
-
-
-
-
-        #=== Function LoadGame & QuitGame ===#
-
-    def LoadGame(self):
-        
-        # Open a file
-        filePath = 'game.txt' # The user has to open a file
-
-        # Initialization : We check if it is a proper sudoku game file. Otherwise we print a message on the stdout
-        #try:
-        self.sudoku = Sudoku(filePath, False)
-        self.commands.SetSudoku(self.sudoku)
-      #  self.commands.Button1.config(state = "normal") # The 3 Buttons become usable when the user loads a proper game
-     #   self.commands.Button2.config(state = "normal")
-      #  self.commands.Button3.config(state = "normal")
-        self.view.SetSudoku(self.sudoku)
-        self.view.SetCommands(self.commands)
-        self.view.Update()
-
-        # except Exception as e:
-        #     print("This is not a proper sudoku game file - Try again !")
-        #     print(e)
-
-    def QuitGame(self): # if the user press exit in the menu => we close the window and stop the program
-        self.parent.destroy()
-        self.parent.quit()
-
-##
-
-class SudokuApp():
-    """ The Sudoku application """
-
-    def __init__(self, master=None):
-        master.title("Sudoku")
-        master.config(bg = "grey")
-        master.resizable(0,0)
-        self.controller = Controller(master)
+    def auto_fill(self):
+        """Autofill - update squares and return (r,c) pairs where square
+        have been filled"""
+        fill = []
+        found = True
+        game = self._game
+        while found:
+            found = False
+            for row in range(9):
+                for col in range(9):
+                    if game[row][col] != ' ': continue
+                    ch = self.choices(row, col)
+                    if len(ch) == 1:
+                        found = True
+                        fill.append((row,col))
+                        game[row][col] = ch[0]
+        return fill
 
 
 
-root1 = Tk()
-app = SudokuApp(root1)
-root1.mainloop()
+    def __repr__(self):
+        result = ''
+        for row in self._game:
+            result = result + ''.join(row) + '\n'
+        return result
