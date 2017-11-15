@@ -1,11 +1,9 @@
-﻿import Tkinter
-from Tkinter import *
-import tkFileDialog as filedialog
-
-from src import sudoku
-from oosudoku import *
-
+import Tkinter
 import platform
+import tkFileDialog as filedialog
+from Tkinter import *
+
+from src.gui.oosudoku import *
 
 if platform.system() == 'Windows':
     small_font = ("Courier New", "10", "bold")
@@ -13,6 +11,7 @@ if platform.system() == 'Windows':
 else:
     small_font = ("Courier New", "10", "bold")
     large_font = ("Courier New", "25", "bold") 
+
 
 box_size = 50
 half = box_size/2
@@ -33,6 +32,7 @@ class NumberButtons(Frame):
             bi.pack(ipadx = 4,pady = 6)
             self.buttons.append(bi)
         self.current.set(1)
+
 
     def get_current(self):
         """ Return the current choice """
@@ -59,69 +59,9 @@ class Commands(Frame):
 
     #=== Three Buttons ====#
 
-        # Button 1 : Show/Hide Choices
-        self.Button1Variable = StringVar()
-        self.Button1Variable.set("Show Choices")
-        self.Button1 = Button(self, textvariable=self.Button1Variable, font = small_font, state = "disabled", width = 15, command=self.OnButton1Click)
-
-        # Button 2 : No/- Autofill
-        self.Button2Variable = StringVar()
-        self.Button2Variable.set("Auto Fill")
-        self.Button2 = Button(self, textvariable=self.Button2Variable, font = small_font, state = "disabled", width = 15, command=self.OnButton2Click)
-
-        # Button 3 : Undo
-        self.Button3 = Button(self, text="Undo", width = 15, font = small_font, state = "disabled", command=self.OnButton3Click)
-
-        # Pack Buttons
-        self.Button1.pack(padx = 10,pady = 10)
-        self.Button2.pack(padx = 10,pady = 10)
-        self.Button3.pack(padx = 10,pady = 10)
 
     #=== Create Buttons Events ====#
 
-    def OnButton1Click(self):
-        """ Cas 1 : Show --> Hide
-                    * Change the button Name
-                    * Display available choices on the canvas (calculate choices and show items tagged "Text")
-            Cas 2 : Hide --> Show
-                    * Change the button Name
-                    * Do not display available choices on the canvas(Text tagged items become " ")     
-        """       
-        if "Show" in self.Button1Variable.get() :
-            self.Button1Variable.set("Hide Choices")
-            self.canvas.Update()
-        else:
-            self.Button1Variable.set("Show Choices")
-            for k in self.canvas.CanvasGame.find_withtag('Text'):
-                self.canvas.CanvasGame.itemconfig(k, text=" ")
-
-    def OnButton2Click(self):
-        """ * Change the button Name
-            * set or unset auto fill parameter in sudoku class
-            * Update the display
-        """
-        if "No" in self.Button2Variable.get() :
-            self.Button2Variable.set("Auto Fill")
-            self.sudoku.flip_af() # Auto fill is now inactive
-
-        else:
-            self.Button2Variable.set("No Auto Fill")
-            self.sudoku.flip_af() # Auto fill is now active
-            autotab = []
-            autotab = self.sudoku.auto_fill()
-            if len(autotab) != 0:
-                self.sudoku._undo_stack.append(autotab)
-            """ According to the class sudoku, the undo stack is only updated if we set an entry
-                However here, the user can call autofill without setting an entry
-                To make sure the button undo work, we need to update the undo stack"""
-            self.canvas.Update()
-
-    def OnButton3Click(self):
-        """ Use the method undo from Sudoku class
-            + upadate the display
-        """ 
-        self.sudoku.undo()
-        self.canvas.Update()
 
     def SetSudoku(self, sudoku):
         self.sudoku = sudoku
@@ -199,18 +139,7 @@ class View(Frame):
                 if " " not in self.sudoku._game[i][j]:
                     self.CanvasGame.itemconfig(self.table[j][i], text=self.sudoku._game[i][j], font = large_font, tag='Fixed', fill="red")
         # Update the choices Numbers --> All items which are "Text" tagged are displayed in blue or not (depending on the Show/Hide choices Button)
-        if "Hide" in self.commands.Button1Variable.get():
-            for i in range(0,9):
-                for j in range(0,9):
-                    if " " in self.sudoku._game[i][j]: # Here is several choices for this entry
-                        stringvar = "" 
-                        for k in self.sudoku.choices(i,j): stringvar += k # stringvar concatenates all available choices for the case[i][j]
-                        self.CanvasGame.itemconfig(self.table[j][i], text=stringvar, tag='Text', font = small_font, fill="blue")
-        else:
-            for i in range(0,9):
-                for j in range(0,9):
-                    if " " in self.sudoku._game[i][j]:
-                        self.CanvasGame.itemconfig(self.table[j][i], text=" ", tag='Text')
+
 
 
         #==== GET/SET Methods ===#
@@ -226,6 +155,8 @@ class View(Frame):
                     ##############################
                     #===== CONTROLLER CLASS =====#
                     ##############################
+
+
 
 class Controller(Frame):
     """ Create:
@@ -259,6 +190,11 @@ class Controller(Frame):
         self.numberbuttons.pack(side = LEFT, padx = 20)
         self.commands.pack(side = LEFT)
 
+
+
+
+
+
         #=== Function LoadGame & QuitGame ===#
 
     def LoadGame(self):
@@ -270,9 +206,9 @@ class Controller(Frame):
         #try:
         self.sudoku = Sudoku(filePath, False)
         self.commands.SetSudoku(self.sudoku)
-        self.commands.Button1.config(state = "normal") # The 3 Buttons become usable when the user loads a proper game
-        self.commands.Button2.config(state = "normal")
-        self.commands.Button3.config(state = "normal")
+      #  self.commands.Button1.config(state = "normal") # The 3 Buttons become usable when the user loads a proper game
+     #   self.commands.Button2.config(state = "normal")
+      #  self.commands.Button3.config(state = "normal")
         self.view.SetSudoku(self.sudoku)
         self.view.SetCommands(self.commands)
         self.view.Update()
@@ -290,9 +226,12 @@ class Controller(Frame):
 class SudokuApp():
     """ The Sudoku application """
 
-    def __init__(self, master=None):
+    def __init__(self, master=None,socket):
         master.title("Sudoku")
         master.config(bg = "grey")
         master.resizable(0,0)
         self.controller = Controller(master)
+
+
+
 

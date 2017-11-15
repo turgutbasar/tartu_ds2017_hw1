@@ -1,4 +1,3 @@
-
 def list_diff(lst1, lst2):
     """Return lst1 - lst2.
 
@@ -182,15 +181,21 @@ class Sudoku:
 
 
     def game_status(self):
+
         status = "Finished"
+
         game = self._game
         for row in range(9):
             for col in range(9):
                if game[row][col] == ' ':
                    status = ""
                    ch = self.choices(row, col)
+                   scores = 0
                    if not ch:
+                       k=scores-1
+                       print k
                        return "Unsolvable"
+
         return status
 
     def flip_af(self):
