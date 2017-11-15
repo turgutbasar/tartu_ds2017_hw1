@@ -25,6 +25,10 @@ def on_select(event):
     print list_name.get(list_name.curselection())
     connect_to_server()
 
+def create_game_screen():
+    app = SudokuApp(root)
+    mainloop()
+
 # show nickname screen
 def create_login_screen():
     read_names = open("nicknames", "r")
