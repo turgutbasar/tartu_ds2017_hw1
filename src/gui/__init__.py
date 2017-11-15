@@ -25,8 +25,8 @@ def on_select(event):
     print list_name.get(list_name.curselection())
     connect_to_server()
 
-def create_game_screen(socket):
-    app = SudokuApp(root,socket)
+def create_game_screen():
+    app = SudokuApp()
     mainloop()
 
 # show nickname screen

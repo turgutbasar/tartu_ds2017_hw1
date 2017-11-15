@@ -3,7 +3,7 @@ import platform
 import tkFileDialog as filedialog
 from Tkinter import *
 
-from src.gui.oosudoku import *
+from oosudoku import *
 
 if platform.system() == 'Windows':
     small_font = ("Courier New", "10", "bold")
@@ -226,7 +226,7 @@ class Controller(Frame):
 class SudokuApp():
     """ The Sudoku application """
 
-    def __init__(self, master=None,socket):
+    def __init__(self, master=None):
         master.title("Sudoku")
         master.config(bg = "grey")
         master.resizable(0,0)
