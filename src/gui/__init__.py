@@ -1,14 +1,14 @@
 from Tkinter import *
 
-from client import get_nickname, get_address, send_session_id, create_game_session
+from client import get_nickname, send_session_id, create_game_session, get_address
 import tkMessageBox
 import Tkinter as tk
 
 def get_nick_text():
+    global nick_name
     nick_name = nick_text.get("1.0",'end-1c')
     if get_nickname(nick_name) == 1:
         write_names = open("nicknames", "a")
-        #read_names = open("nickname","a")
         write_names.write("\n"+nick_name)
         connect_to_server()
     else:
@@ -33,7 +33,6 @@ def create_game_screen():
 def create_login_screen():
     read_names = open("nicknames", "r")
     names = read_names.read().split()
-
     global login
     login = Tk()
     login.title("Enter Nickname")
@@ -76,8 +75,15 @@ def connect_to_server():
 def get_address_port():
     address_server = address_text.get("1.0",'end-1c')
     port = port_text.get("1.0",'end-1c')
-    response = get_address(address_server,port)
-    multiplayer_game(response)
+    get_address(address_server,port,nick_name, notify_callback)
+
+
+def notify_callback( type, data):
+    if type:
+        multiplayer_game(data)
+    else:
+        i = 1
+    return
 
 def on_click_sessions(event):
     current_session = list_box_sessions.get(list_box_sessions.curselection())
@@ -107,7 +113,6 @@ def create_session():
     session.title("Creating new Sudoku Solving Session")
     okay = Button(session, text="ok", command = create_session, width=20)
     okay.pack({"side": "bottom"})
-
     num_label = Label(session, text="Player's number:")
     num_label.pack()
     global player_num_text
@@ -122,6 +127,7 @@ def create_new_session():
 
 def game_player_scenario():
     print "senario"
+
 create_login_screen()
 
 #multiplayer_game(9)
