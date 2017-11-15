@@ -36,22 +36,23 @@ class ProtocolWorker(threading.Thread):
 
     def run(self):
         buf = ""
-        self.__client["client_socket"].setblocking(0)
+        self.__client["client_socket"].settimeout(5)
         while True:
             m = None
             try:
                 buf += self.__client["client_socket"].recv(512)
             except (soc_error) as e:
+		LOG.debug("Buffer::" + buf)
                 endofmsg = buf.find(";;")
                 if endofmsg > 0:
                     m = buf[0:endofmsg]
-                    buf = buf[endofmsg:len(buf)]
+                    buf = buf[endofmsg+2:len(buf)]
                     # Now here we assumen the message contains
                     LOG.debug('Received message [%d bytes]' % (len(m),))
                     # We are processing message we have
                     # TODO : Session Manager Needed
                     r = protocol.server_process(m, self.__session_manager, self.__client["client_socket"], self.__client["addr"])
-
+		    print(r)
                     # Try to send the response (r) to client
                     # Shutdown the TX pipe of the socket after sending
                     try:

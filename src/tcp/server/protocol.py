@@ -75,7 +75,7 @@ def server_process(chunk, session_manager, socket, addr):
     elif chunk.startwith(__REQ_NEW_SESSION + __MSG_FIELD_SEP):
         client_id = session_manager.get_client_id(addr)
         args = chunk[2:].split(__MSG_FIELD_SEP)
-        session_id = session_manager.new_session(client_id)
+        session_id = session_manager.new_session(client_id, args[0])
         return session_id
     #join session request
     elif chunk.startwith(__REQ_JOIN_EXISTING + __MSG_FIELD_SEP):

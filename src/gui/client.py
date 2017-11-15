@@ -77,15 +77,15 @@ def get_address(ip, port, nick_name, notify_callback):
 def tcp_receive_thread(notify_callback):
     callback = notify_callback
     buf = ""
-    s.settimeout(1)
+    s.settimeout(5)
     while True:
         try:
-            buf += s.recv(1024)
+            buf += s.recv(512)
         except soc_error as e:
             endofmsg = buf.find(";;")
             if endofmsg > 0:
                 m = buf[0:endofmsg]
-                buf = buf[endofmsg:len(buf)]
+                buf = buf[endofmsg+2:len(buf)]
                 # Now here we assumen the message contains
                 LOG.debug(m)
                 if len(m) < 2:
@@ -126,6 +126,7 @@ def send_session_id(id):
 
 
 def create_game_session(players_num):
+    print("create new session")
     try:
         message = __MSG_FIELD_SEP.join([__REQ_NEW_SESSION] + map(str, [players_num])) + ";;"
         print message
