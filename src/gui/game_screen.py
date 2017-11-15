@@ -226,7 +226,7 @@ class Controller(Frame):
 class SudokuApp():
     """ The Sudoku application """
 
-    def __init__(self, master=None):
+    def __init__(self, master=None,socket):
         master.title("Sudoku")
         master.config(bg = "grey")
         master.resizable(0,0)
@@ -234,6 +234,4 @@ class SudokuApp():
 
 
 
-root1 = Tk()
-app = SudokuApp(root1)
-root1.mainloop()
+
