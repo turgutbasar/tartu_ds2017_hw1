@@ -21,9 +21,15 @@ TCP_RECEIVE_BUFFER_SIZE = 1024*1024
 # Field separator for sending multiple values ---------------------------------
 __MSG_FIELD_SEP = ':'
 # Requests --------------------------------------------------------------------
-__REQ_SAMPLE = '1'
-__CTR_MSGS = { __REQ_SAMPLE:'Sample',
-              }
+__REQ_REGISTRATION = '1'
+__REQ_NEW_SESSION = '2'
+__REQ_JOIN_EXISTING = '3'
+__REQ_BOARD_CHANGE = '4'
+__REQ_CLIENT_LEFT = '5'
+
+__CTR_MSGS = { __REQ_REGISTRATION:'Registration', __REQ_NEW_SESSION:'New session', __REQ_JOIN_EXISTING:'Join existing', __REQ_BOARD_CHANGE:'Game board change'
+             }
+
 # Responses--------------------------------------------------------------------
 __RSP_OK = '0'
 __RSP_BADFORMAT = '1'

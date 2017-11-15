@@ -12,7 +12,8 @@ LOG = logging.getLogger()
 # Imports----------------------------------------------------------------------
 from exceptions import ValueError # for handling number format exceptions
 from tcp.common import __RSP_BADFORMAT,\
-     __REQ_SAMPLE, __RSP_OK, __MSG_FIELD_SEP, __RSP_UNKNCONTROL
+     __RSP_OK, __MSG_FIELD_SEP, __RSP_UNKNCONTROL, __REQ_REGISTRATION, __REQ_NEW_SESSION, __REQ_JOIN_EXISTING, __REQ_BOARD_CHANGE, __REQ_CLIENT_LEFT
+    #TODO: add reqs
 from socket import error as soc_err
 # Constants -------------------------------------------------------------------
 ___NAME = 'Sudoku Game Server-Side Protocol'
@@ -40,7 +41,7 @@ def __disconnect_client(sock):
     sock.close()
     LOG.info('Disconnected client')
 
-def server_process(chunk):
+def server_process(chunk, session_manager, socket, addr):
     '''Process the client's messages and generates needed events 
         @param event_bus: Event bus that has all event messages about server
         @param message: string, protocol data unit received from client
@@ -52,15 +53,56 @@ def server_process(chunk):
         LOG.debug('Not enough data received from %s ' % chunk)
         return __RSP_BADFORMAT
     LOG.debug('Request control code (%s)' % chunk[0])
-    if chunk.startswith(__REQ_SAMPLE + __MSG_FIELD_SEP):
-	# Split payload
+    
+    client_id = get_client_id(addr) 
+    
+    if chunk.startswith(__REQ_REGISTRATION + __MSG_FIELD_SEP):
+        # Split payload
         args = chunk[2:].split(__MSG_FIELD_SEP)
+        #adding username to the list
+        session_manager.new_user(args[0], socket, addr)
+        #getting session_list
+        rsp = session_manager.get_session()
+        #return session_list
+        return rsp
+    
+    elif chunk.startwith(__REQ_NEW_SESSION + __MSG_FIELD_SEP):
+        args = chunk[2:].split(__MSG_FIELD_SEP)
+        session_id = session_manager.new_session(client_id)
+        return session_id
+    
+    elif chunk.startwith(__REQ_JOIN_EXISTING + __MSG_FIELD_SEP):
+        #TODO: Game starting broadcasting
+        args = chunk[2:].split(__MSG_FIELD_SEP)
+        #boshsa add to session manager
+        join = session_manager.join_session(client_id, args[0])
+        if(join == True):
+            ready = session_manager.is_session_ready(arg[0])
+            if(ready == True):
+                #TODO: broadcasting game started
+            else:
+                return __RSP_OK
+        else:
+            #TODO: Correct error
+            return "Error"
+    
+    elif chunk.startwith(__REQ_BOARD_CHANGE + __MSG_FIELD_SEP):
+        #TODO: Game scores broadcasting, or anonse winner broadcasting
+        args = chunk[2:].split(__MSG_FIELD_SEP)
+        move = {'i': int(args[1]), 'j':int(args[2]), 'value':int(args[3])}
+        game_status = process_game_move(args[0], client_id, move)
+        
+        #broadcasting
         return __RSP_OK
-    # TODO : Here we need to implement all protocol related message handling.
-    '''elif chunk.startswith(__REQ_SAMPLE + __MSG_FIELD_SEP):
-	# Split payload
+    
+    elif chunk.startwith(__REQ_CLIENT_LEFT + __MSG_FIELD_SEP):
         args = chunk[2:].split(__MSG_FIELD_SEP)
-        return __RSP_OK'''
+        status = session_manger.client_left_server(args[0],client_id)
+        if status == False:
+            #TODO: Finishing game
+            #TODO: broadcasting
+        return __RSP_OK
+    
     else:
         LOG.debug('Unknown control message received: %s ' % chunk)
         return __RSP_UNKNCONTROL
