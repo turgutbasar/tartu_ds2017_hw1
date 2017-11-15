@@ -54,15 +54,15 @@ def server_process(chunk, session_manager, socket, addr):
         return __RSP_BADFORMAT
     LOG.debug('Request control code (%s)' % chunk[0])
     
-    client_id = get_client_id(addr) 
+    client_id = session_manager.get_client_id(addr) 
     
     if chunk.startswith(__REQ_REGISTRATION + __MSG_FIELD_SEP):
         # Split payload
         args = chunk[2:].split(__MSG_FIELD_SEP)
         #adding username to the list
-        session_manager.new_user(args[0], socket, addr)
+        session_manager.new_player(args[0], socket, addr)
         #getting session_list
-        rsp = session_manager.get_session()
+        rsp = session_manager.get_session_list()
         #return session_list
         return rsp
     
@@ -80,17 +80,18 @@ def server_process(chunk, session_manager, socket, addr):
             ready = session_manager.is_session_ready(arg[0])
             if(ready == True):
                 #TODO: broadcasting game started
+		i = 66666 # to fix indent
             else:
-                return __RSP_OK
-        else:
+		return __RSP_OK
+	else:
             #TODO: Correct error
             return "Error"
-    
+
     elif chunk.startwith(__REQ_BOARD_CHANGE + __MSG_FIELD_SEP):
         #TODO: Game scores broadcasting, or anonse winner broadcasting
         args = chunk[2:].split(__MSG_FIELD_SEP)
         move = {'i': int(args[1]), 'j':int(args[2]), 'value':int(args[3])}
-        game_status = process_game_move(args[0], client_id, move)
+        game_status = session_manger.process_game_move(args[0], client_id, move)
         
         #broadcasting
         return __RSP_OK
@@ -100,6 +101,7 @@ def server_process(chunk, session_manager, socket, addr):
         if status == False:
             #TODO: Finishing game
             #TODO: broadcasting
+	    i = 999999 #############
         return __RSP_OK
     else:
         LOG.debug('Unknown control message received: %s ' % chunk)

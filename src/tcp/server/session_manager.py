@@ -24,19 +24,21 @@ class SessionManager():
     def __init__(self):
         self.__sessionlist = []
 	self.__clientlist = []
-    def new_player(nickname, socket, addr):
-        c = {"client_id": client_numerator, "client_socket": socket, "addr": addr}
-	client_numerator += 1
+	self.__client_numerator = 0
+	self.__session_numerator = 0
+    def new_player(self, nickname, socket, addr):
+        c = {"client_id": self.__client_numerator, "client_socket": socket, "addr": addr}
+	self.__client_numerator += 1
 	self.__clientlist.append(c)
-	return client_numerator
-    def new_session(client_id):
+	return c["client_id"]
+    def new_session(self, client_id):
 	client = self.__clienlist[client_id]
 	game = {}
-	session = {"session_id": session_numerator, "clients": [client], "game": game, "desired_player": 4, "score_board": dict.fromKeys([client_id])}
-	session_numerator += 1
+	session = {"session_id": self.__session_numerator, "clients": [client], "game": game, "desired_player": 4, "score_board": dict.fromKeys([client_id])}
+	self.__session_numerator += 1
 	self.__sessionlist.append(session)
 	return session["session_id"]
-    def join_session(client_id, session_id):
+    def join_session(self, client_id, session_id):
 	session = self.__sessionlist[session_id]
 	client = self.__clientlist[client_id]
 	if len(session["clients"]) >= session["desired_player"]:
@@ -45,13 +47,13 @@ class SessionManager():
 	    session["clients"].append(client)
 	    session["score_board"][client_id] = 0
 	    return True
-    def is_session_ready(session_id):
+    def is_session_ready(self, session_id):
 	session = self.__sessionlist[session_id]
 	if len(session["clients"]) >= session["desired_player"]:
 	    return True
 	else:
 	    return False
-    def process_game_move(session_id, client_id, move):
+    def process_game_move(self, session_id, client_id, move):
 	session = self.__sessionlist[session_id]
 	game = session["game"]
 	if game.check(move["i"], move["j"], move["value"]):
@@ -59,19 +61,22 @@ class SessionManager():
 	else:
 	    session["score_board"][client_id] -= 1
 	# TODO : Game needs a method like this
-	return game.isEnded():   
-    def client_left_session(session_id, client_id):
+	return game.isEnded()   
+    def client_left_session(self, session_id, client_id):
 	session = self.__sessionlist[session_id]
 	client = self.__clientlist[client_id]
 	session["clients"].remove(client)
 	# Checks if game ended
 	if len(session["clients"]) < 2:
 	    return False
-	else
+	else:
 	    return True
-    def client_left_server(client_id):
+    def client_left_server(self, client_id):
 	# TODO : check every session to clean user and return ended games
-    def get_client_id(addr):
+	return [0]
+    def get_client_id(self, addr):
 	# TODO . match client address with client_id and return client id
-    def get_session_list():
+	return 0
+    def get_session_list(self):
 	# TODO : serialize session list to JSON
+	return ""
