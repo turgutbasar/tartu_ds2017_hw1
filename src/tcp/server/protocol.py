@@ -59,7 +59,6 @@ def server_process(chunk, session_manager, socket, addr):
         return __RSP_BADFORMAT
     LOG.debug('Request control code (%s)' % chunk[0])
     
-    client_id = session_manager.get_client_id(addr)
 
     if chunk.startswith(__REQ_REGISTRATION + __MSG_FIELD_SEP):
         # Split payload
@@ -72,17 +71,19 @@ def server_process(chunk, session_manager, socket, addr):
         return rsp
 
     elif chunk.startwith(__REQ_NEW_SESSION + __MSG_FIELD_SEP):
+        client_id = session_manager.get_client_id(addr)
         args = chunk[2:].split(__MSG_FIELD_SEP)
         session_id = session_manager.new_session(client_id)
         return session_id
     #join session request
     elif chunk.startwith(__REQ_JOIN_EXISTING + __MSG_FIELD_SEP):
         # TODO: Game starting broadcasting
+        client_id = session_manager.get_client_id(addr)
         args = chunk[2:].split(__MSG_FIELD_SEP)
         join = session_manager.join_session(client_id, args[0])
         #Join session if there is free place
         if(join == True):
-            session_ready = session_manager.is_session_ready(arg[0])
+            session_ready = session_manager.is_session_ready(args[0])
             #If game is ready to start
             if(session_ready != False):
                 clients = session_ready[0]
@@ -98,12 +99,13 @@ def server_process(chunk, session_manager, socket, addr):
     #add digit to game board request
     elif chunk.startwith(__REQ_BOARD_CHANGE + __MSG_FIELD_SEP):
         # TODO: Game scores broadcasting, or anonse winner broadcasting
+        client_id = session_manager.get_client_id(addr)
         args = chunk[2:].split(__MSG_FIELD_SEP)
 
         move = {'i': int(args[1]), 'j':int(args[2]), 'value':int(args[3])}
         status = session_manager.process_game_move(args[0], client_id, move)
-        clients = game_status[0]
-        string = game_status[1]
+        clients = status[0]
+        string = status[1]
         if(status[0] == True):            
             for c in clients:
                 #broadcasting
@@ -118,10 +120,11 @@ def server_process(chunk, session_manager, socket, addr):
     
     #client left game request
     elif chunk.startwith(__REQ_CLIENT_LEFT + __MSG_FIELD_SEP):
+        client_id = session_manager.get_client_id(addr)
         args = chunk[2:].split(__MSG_FIELD_SEP)
-        status = session_manger.client_left_session(args[0],client_id)
-        lients = game_status[0]
-        string = game_status[1]
+        status = session_manager.client_left_session(args[0],client_id)
+        clients = status[0]
+        string = status[1]
         #broadcasting
         if(status[0] == True):            
             for c in clients:
