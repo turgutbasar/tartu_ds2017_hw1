@@ -2,7 +2,7 @@ from Tkinter import *
 
 from client import get_nickname, send_session_id, create_game_session, get_address
 import tkMessageBox
-import Tkinter as tk
+from game_screen import SudokuApp
 
 def get_nick_text():
     global nick_name
@@ -77,18 +77,17 @@ def get_address_port():
     port = port_text.get("1.0",'end-1c')
     get_address(address_server,port,nick_name, notify_callback)
 
-
 def notify_callback( type, data):
-    if type:
+    if type == 0:
         multiplayer_game(data)
     else:
-        i = 1
+        create_session()
     return
 
 def on_click_sessions(event):
     current_session = list_box_sessions.get(list_box_sessions.curselection())
     print current_session
-    return send_session_id(current_session)
+    send_session_id(current_session)
 
 def multiplayer_game(list_sessions):
     root.destroy()
@@ -111,7 +110,7 @@ def create_session():
     global session
     session = Tk()
     session.title("Creating new Sudoku Solving Session")
-    okay = Button(session, text="ok", command = create_session, width=20)
+    okay = Button(session, text="ok", command = create_new_session, width=20)
     okay.pack({"side": "bottom"})
     num_label = Label(session, text="Player's number:")
     num_label.pack()

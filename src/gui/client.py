@@ -129,37 +129,9 @@ def send_session_id(id):
 
 def create_game_session(players_num):
     try:
-        print players_num
-        if s.sendall(players_num) == None:
-            session_id = s.recv(1024)
-            return session_id
+        message = __MSG_FIELD_SEP.join([__REQ_REGISTRATION] + map(str, [players_num])) + ";;"
+        print message
+        s.sendall(message)
     except Exception as e:
         s.close()
         print e
-    '''
-    show session list
-    print get_address(ip,port)'''
-    # create session
-    player_num = 3
-    # create_sudoku_session(player_num)
-
-
-# def create_sudoku_session(player_num):
-# register the session in server
-
-# def join_sudoku_session():
-# open the game player dialog
-
-'''if __name__ == '__main__':
-    # Find the script absolute path, cut the working directory
-    #a_path = sep.join(abspath(argv[0]).split(sep)[:-1])
-    # Append script working directory into PYTHONPATH
-   # path.append(a_path)
-    # Parsing arguments
-
-    get nickname from ui
-    name = sys.argv[1]
-    print get_nickname(name)
-    ip = sys.argv[1]
-    port = sys.argv[2]
-    print get_address(ip,int(port))'''
