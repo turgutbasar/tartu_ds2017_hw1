@@ -1,7 +1,9 @@
 ﻿import Tkinter
 from Tkinter import *
 import tkFileDialog as filedialog
-from sudoku.oosudoku import *
+
+from src import sudoku
+from oosudoku import *
 
 import platform
 
