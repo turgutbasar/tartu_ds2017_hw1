@@ -66,7 +66,9 @@ def server_process(chunk, session_manager, socket, addr):
         # adding username to the list
         session_manager.new_player(args[0], socket, addr)
         # getting session_list
-        rsp = session_manager.get_session_list()
+        session_list = session_manager.get_session()
+        #formatting
+        rsp = __MSG_FIELD_SEP.join([__RSP_SESSION_LIST] + map(str, [session_list]))
         # return session_list
         return rsp
 
@@ -90,7 +92,7 @@ def server_process(chunk, session_manager, socket, addr):
                 string = session_ready[1]
                 #Broadcasting game board
                 for c in clients:
-                    message = __MSG_FIELD_SEP.join([__RSP_BOARD] + map(str, [string])) + ";;"
+                    message = __MSG_FIELD_SEP.join([__RSP_BOARD] + map(str, [string]))
                     c.sendall(message)
             return __RSP_OK
         else:
@@ -109,11 +111,11 @@ def server_process(chunk, session_manager, socket, addr):
         if(status[0] == True):            
             for c in clients:
                 #broadcasting
-                message = __MSG_FIELD_SEP.join([__RSP_ENDGAME] + map(str, [string])) + ";;"
+                message = __MSG_FIELD_SEP.join([__RSP_ENDGAME] + map(str, [string]))
                 c.sendall(message)
         else:
             for c in clients:
-                message = __MSG_FIELD_SEP.join([__RSP_BOARDUPDATE] + map(str, [string])) + ";;"
+                message = __MSG_FIELD_SEP.join([__RSP_BOARDUPDATE] + map(str, [string]))
                 c.sendall(message)
 
         return __RSP_OK
@@ -128,11 +130,11 @@ def server_process(chunk, session_manager, socket, addr):
         #broadcasting
         if(status[0] == True):            
             for c in clients:
-                message = __MSG_FIELD_SEP.join([__RSP_ENDGAME] + map(str, [string])) + ";;"
+                message = __MSG_FIELD_SEP.join([__RSP_ENDGAME] + map(str, [string]))
                 c.sendall(message)
         else:
             for c in clients:
-                message = __MSG_FIELD_SEP.join([__RSP_BOARDUPDATE] + map(str, [string])) + ";;"
+                message = __MSG_FIELD_SEP.join([__RSP_BOARDUPDATE] + map(str, [string]))
                 c.sendall(message)
 
         return __RSP_OK
