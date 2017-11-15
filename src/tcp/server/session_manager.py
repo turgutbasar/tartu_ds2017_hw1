@@ -13,6 +13,8 @@ from socket import error as soc_error
 from tcp.server import protocol
 from tcp.common import tcp_receive, tcp_send
 from socket import socket, AF_INET, SOCK_STREAM
+from json import JSONEncoder
+
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-2s) %(message)s')
 LOG = logging.getLogger()
 
@@ -31,10 +33,10 @@ class SessionManager():
 	self.__client_numerator += 1
 	self.__clientlist.append(c)
 	return c["client_id"]
-    def new_session(self, client_id):
+    def new_session(self, client_id, desired_player):
 	client = self.__clienlist[client_id]
 	game = {}
-	session = {"session_id": self.__session_numerator, "clients": [client], "game": game, "desired_player": 4, "score_board": dict.fromKeys([client_id])}
+	session = {"session_id": self.__session_numerator, "clients": [client], "game": game, "desired_player": desired_player, "score_board": dict.fromKeys([client_id])}
 	self.__session_numerator += 1
 	self.__sessionlist.append(session)
 	return session["session_id"]
@@ -78,5 +80,4 @@ class SessionManager():
 	# TODO . match client address with client_id and return client id
 	return 0
     def get_session_list(self):
-	# TODO : serialize session list to JSON
-	return ""
+	return JSONEncoder().encode(self.__sessionlist)
