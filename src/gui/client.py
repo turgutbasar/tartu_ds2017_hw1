@@ -97,21 +97,19 @@ def tcp_receive_thread(notify_callback):
                     # Split payload
                     args = m[2:].split(__MSG_FIELD_SEP)
                     key = '"session":'
-                    data = "{"+key + args+"}"
+                    data = "{"+key + args[0]+"}"
                     print(data)
                     d = json.loads(data)
                     print (d["session"])
-                    data = json.load(args)
-                    callback(0, data)
+                    callback(0, d["session"])
                 elif m.startswith(__RSP_BOARD + __MSG_FIELD_SEP):
                     # Split payload
                     args = m[2:].split(__MSG_FIELD_SEP)
                     key = '"session":'
                     data = "{"+key + args+"}"
-                    print(data)
+                    print("data",data)
                     d = json.loads(data)
                     print (d["session"])
-                    data = json.load(args)
                     callback(1, data)
                 else:
                     LOG.debug('Unknown control message received: %s ' % m)
@@ -119,7 +117,7 @@ def tcp_receive_thread(notify_callback):
 
 def send_session_id(id):
     try:
-        message = __MSG_FIELD_SEP.join([__REQ_REGISTRATION] + map(str, [id])) + ";;"
+        message = __MSG_FIELD_SEP.join([__REQ_JOIN_EXISTING] + map(str, [id])) + ";;"
         print message
         s.sendall(message)
     except Exception as e:
@@ -129,7 +127,7 @@ def send_session_id(id):
 
 def create_game_session(players_num):
     try:
-        message = __MSG_FIELD_SEP.join([__REQ_REGISTRATION] + map(str, [players_num])) + ";;"
+        message = __MSG_FIELD_SEP.join([__REQ_NEW_SESSION] + map(str, [players_num])) + ";;"
         print message
         s.sendall(message)
     except Exception as e:
