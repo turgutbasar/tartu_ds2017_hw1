@@ -226,7 +226,7 @@ class Controller(Frame):
 class SudokuApp():
     """ The Sudoku application """
 
-    def __init__(self, master=None,socket):
+    def __init__(self, master=None):
         master.title("Sudoku")
         master.config(bg = "grey")
         master.resizable(0,0)

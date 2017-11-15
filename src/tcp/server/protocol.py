@@ -66,7 +66,7 @@ def server_process(chunk, session_manager, socket, addr):
         # adding username to the list
         session_manager.new_player(args[0], socket, addr)
         # getting session_list
-        session_list = session_manager.get_session()
+        session_list = session_manager.get_session_list()
         #formatting
         rsp = __MSG_FIELD_SEP.join([__RSP_SESSION_LIST] + map(str, [session_list]))
         # return session_list

@@ -4,6 +4,8 @@ from client import get_nickname, send_session_id, create_game_session, get_addre
 import tkMessageBox
 from game_screen import SudokuApp
 
+name = ''
+
 def get_nick_text():
     global nick_name
     nick_name = nick_text.get("1.0",'end-1c')
@@ -23,10 +25,13 @@ def info_message(message):
 def on_select(event):
     #print event.widget.curselection()[0]
     print list_name.get(list_name.curselection())
+    global name
+    name = list_name.get(list_name.curselection())
     connect_to_server()
 
-def create_game_screen(socket):
-    app = SudokuApp(root,socket)
+def create_game_screen():
+    sudoku = Tk()
+    app = SudokuApp(sudoku)
     mainloop()
 
 # show nickname screen
@@ -73,9 +78,15 @@ def connect_to_server():
     mainloop()
 
 def get_address_port():
-    address_server = address_text.get("1.0",'end-1c')
-    port = port_text.get("1.0",'end-1c')
-    get_address(address_server,port,nick_name, notify_callback)
+    address_server = address_text.get("1.0", 'end-1c')
+    port = port_text.get("1.0", 'end-1c')
+    if name == '':
+        print "nickname",nick_name
+        get_address(address_server,port,nick_name, notify_callback)
+    else:
+        print "name", name
+        get_address(address_server,port,name, notify_callback)
+
 
 def notify_callback( type, data):
     if type == 0:
@@ -91,13 +102,13 @@ def on_click_sessions(event):
 
 def multiplayer_game(list_sessions):
     root.destroy()
+    global game
     game = Tk()
     game.title("Multiplayer Game Dialog ")
     global list_box_sessions
     list_box_sessions = Listbox(game,height = 5,font=("Arial", 10),selectmode='single')
     list_box_sessions.bind('<<ListboxSelect>>', on_click_sessions)
     i = 0
-    list_sessions = ["fghj","efdsf","fsd"]
     for n in list_sessions:
         list_box_sessions.insert(i, n)
         i += 1
@@ -107,6 +118,7 @@ def multiplayer_game(list_sessions):
     mainloop()
 
 def create_session():
+    game.destroy()
     global session
     session = Tk()
     session.title("Creating new Sudoku Solving Session")
