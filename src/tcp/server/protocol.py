@@ -12,7 +12,7 @@ LOG = logging.getLogger()
 # Imports----------------------------------------------------------------------
 from exceptions import ValueError # for handling number format exceptions
 from tcp.common import __RSP_BADFORMAT,\
-     __RSP_OK, __MSG_FIELD_SEP, __RSP_UNKNCONTROL, __REQ_REGISTRATION, __REQ_NEW_SESSION, __REQ_JOIN_EXISTING, __REQ_BOARD_CHANGE, __REQ_CLIENT_LEFT
+     __RSP_OK, __MSG_FIELD_SEP, __RSP_UNKNCONTROL, __REQ_REGISTRATION, __REQ_NEW_SESSION, __REQ_JOIN_EXISTING, __REQ_BOARD_CHANGE, __REQ_CLIENT_LEFT, __RSP_SESSION_LIST, __RSP_BOARD, __RSP_SESSION_IS_FULL, __RSP_ENDGAME, __RSP_BOARDUPDATE
     #TODO: add reqs
 from socket import error as soc_err
 # Constants -------------------------------------------------------------------
@@ -56,50 +56,80 @@ def server_process(chunk, session_manager, socket, addr):
     
     client_id = get_client_id(addr) 
     
+    #registaration request
     if chunk.startswith(__REQ_REGISTRATION + __MSG_FIELD_SEP):
         # Split payload
         args = chunk[2:].split(__MSG_FIELD_SEP)
         #adding username to the list
         session_manager.new_user(args[0], socket, addr)
         #getting session_list
-        rsp = session_manager.get_session()
+        session_list = session_manager.get_session()
+        #formatting
+        rsp = __MSG_FIELD_SEP.join([__RSP_SESSION_LIST] + map(str, [session_list])) + ";;"
         #return session_list
         return rsp
     
+    #creat new session request
     elif chunk.startwith(__REQ_NEW_SESSION + __MSG_FIELD_SEP):
         args = chunk[2:].split(__MSG_FIELD_SEP)
         session_id = session_manager.new_session(client_id)
         return session_id
     
+    #join session request
     elif chunk.startwith(__REQ_JOIN_EXISTING + __MSG_FIELD_SEP):
         #TODO: Game starting broadcasting
         args = chunk[2:].split(__MSG_FIELD_SEP)
-        #boshsa add to session manager
+        
         join = session_manager.join_session(client_id, args[0])
+        #Join session if there is free place
         if(join == True):
-            ready = session_manager.is_session_ready(arg[0])
-            if(ready == True):
-                #TODO: broadcasting game started
-            else:
-                return __RSP_OK
+            session_ready = session_manager.is_session_ready(arg[0])
+            #If game is ready to start
+            if(session_ready != False):
+                clients = session_ready[0]
+                string = session_ready[1]
+                #Broadcasting game board
+                for c in clients:
+                    message = __MSG_FIELD_SEP.join([__RSP_BOARD] + map(str, [string])) + ";;"
+                    c.sendall(message)
+            return __RSP_OK
         else:
-            #TODO: Correct error
-            return "Error"
+            return __RSP_SESSION_IS_FULL
     
+    #add digit to game board request
     elif chunk.startwith(__REQ_BOARD_CHANGE + __MSG_FIELD_SEP):
         #TODO: Game scores broadcasting, or anonse winner broadcasting
         args = chunk[2:].split(__MSG_FIELD_SEP)
         move = {'i': int(args[1]), 'j':int(args[2]), 'value':int(args[3])}
-        game_status = process_game_move(args[0], client_id, move)
-        
-        #broadcasting
+        status = session_manager.process_game_move(args[0], client_id, move)
+        clients = game_status[0]
+        string = game_status[1]
+        if(status[0] == True):            
+            for c in clients:
+                #broadcasting
+                message = __MSG_FIELD_SEP.join([__RSP_ENDGAME] + map(str, [string])) + ";;"
+                c.sendall(message)
+        else:
+            for c in clients:
+                message = __MSG_FIELD_SEP.join([__RSP_BOARDUPDATE] + map(str, [string])) + ";;"
+                c.sendall(message)
         return __RSP_OK
+    
+    #client left game request
     elif chunk.startwith(__REQ_CLIENT_LEFT + __MSG_FIELD_SEP):
         args = chunk[2:].split(__MSG_FIELD_SEP)
-        status = session_manger.client_left_server(args[0],client_id)
-        if status == False:
-            #TODO: Finishing game
-            #TODO: broadcasting
+        status = session_manger.client_left_session(args[0],client_id)
+        lients = game_status[0]
+        string = game_status[1]
+        #broadcasting
+        if(status[0] == True):            
+            for c in clients:
+                message = __MSG_FIELD_SEP.join([__RSP_ENDGAME] + map(str, [string])) + ";;"
+                c.sendall(message)
+        else:
+            for c in clients:
+                message = __MSG_FIELD_SEP.join([__RSP_BOARDUPDATE] + map(str, [string])) + ";;"
+                c.sendall(message)
         return __RSP_OK
     else:
         LOG.debug('Unknown control message received: %s ' % chunk)
